@@ -1,5 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 import {
+  Activity,
   CheckCircle,
   ChevronLeft,
   CreditCard,
@@ -50,7 +51,7 @@ const InvoiceDetail = () => {
       await api.patch(`/shops/invoices/${id}/mark-paid/`);
       fetchInvoice();
     } catch (err) {
-      alert("Settlement confirmed.");
+      alert("Settlement confirmation successful.");
     }
   };
 
@@ -150,8 +151,24 @@ const InvoiceDetail = () => {
                     {Number(invoice.labor_cost || 0).toFixed(2)} EGP
                   </td>
                 </tr>
+
+                {(invoice.services_breakdown || []).map((s, idx) => (
+                  <tr key={`svc-${idx}`} className="border-b border-[#2d3139]">
+                    <td className="py-6 flex items-center gap-3 italic text-slate-200">
+                      <Activity size={14} className="text-[#c5a059]" /> {s.name}
+                    </td>
+                    <td className="py-6 text-center text-slate-200">1</td>
+                    <td className="py-6 text-right text-slate-200">
+                      {Number(s.cost || 0).toFixed(2)} EGP
+                    </td>
+                    <td className="py-6 text-right font-bold text-slate-200">
+                      {Number(s.cost || 0).toFixed(2)} EGP
+                    </td>
+                  </tr>
+                ))}
+
                 {(invoice.parts_breakdown || []).map((p, idx) => (
-                  <tr key={idx} className="border-b border-[#2d3139]">
+                  <tr key={`part-${idx}`} className="border-b border-[#2d3139]">
                     <td className="py-6 flex items-center gap-3 italic text-slate-200">
                       <Package size={14} className="text-slate-500" /> {p.name}
                     </td>
@@ -159,10 +176,13 @@ const InvoiceDetail = () => {
                       {p.quantity}
                     </td>
                     <td className="py-6 text-right text-slate-200">
-                      {Number(p.price).toFixed(2)} EGP
+                      {Number(p.price || 0).toFixed(2)} EGP
                     </td>
                     <td className="py-6 text-right font-bold text-slate-200">
-                      {(Number(p.price) * Number(p.quantity)).toFixed(2)} EGP
+                      {(Number(p.price || 0) * Number(p.quantity || 1)).toFixed(
+                        2,
+                      )}{" "}
+                      EGP
                     </td>
                   </tr>
                 ))}
@@ -171,12 +191,23 @@ const InvoiceDetail = () => {
           </section>
 
           <section className="flex justify-end pt-4 border-t border-[#c5a059]/30">
-            <div className="text-right">
-              <span className="text-[#c5a059] uppercase font-black text-xs tracking-widest">
-                Final Total
-              </span>
-              <div className="text-3xl font-black tracking-tighter text-white">
-                {Number(invoice.total_amount || 0).toFixed(2)} EGP
+            <div className="w-full max-w-xs space-y-3">
+              <div className="flex justify-between items-center text-slate-400">
+                <span className="text-[10px] uppercase font-bold tracking-widest">
+                  VAT (14%)
+                </span>
+                <span className="text-sm font-mono">
+                  {Number(invoice.tax_amount || 0).toFixed(2)} EGP
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center pt-4 border-t border-[#2d3139]">
+                <span className="text-[#c5a059] uppercase font-black text-xs tracking-widest">
+                  Final Total
+                </span>
+                <div className="text-3xl font-black tracking-tighter text-white print:text-black">
+                  {Number(invoice.total_amount || 0).toFixed(2)} EGP
+                </div>
               </div>
             </div>
           </section>

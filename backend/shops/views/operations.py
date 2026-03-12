@@ -58,7 +58,10 @@ class WorkOrderViewSet(viewsets.ModelViewSet):
     def assign_techs(self, request, pk=None):
         order = self.get_object()
         serializer = WorkOrderAssignmentSerializer(
-            order, data=request.data, partial=True
+            order,
+            data=request.data,
+            partial=True,
+            context={"request": request},  # explicitly pass request context
         )
         if serializer.is_valid():
             serializer.save()
@@ -68,7 +71,7 @@ class WorkOrderViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"], url_path="generate-invoice")
     def generate_invoice(self, request, pk=None):
         order = self.get_object()
-        user_profile = getattr(self.request.user, "profile", None)
+        user_profile = getattr(request.user, "profile", None)
         manual_total = request.data.get("total_override")
 
         if (
@@ -136,13 +139,15 @@ class WorkOrderViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+
 class PublicTicketTrackerView(APIView):
     permission_classes = [AllowAny]
+
     def get(self, request, ticket_id):
         order = get_object_or_404(WorkOrder, ticket_id=ticket_id)
         data = {
             "ticket_id": order.ticket_id,
-            "item_name": order.item.name if order.item else "N/A",
+            "item_name": order.item.model_name if order.item else "N/A",
             "status": order.status,
             "brand": order.item.brand if order.item else "N/A",
             "model": order.item.model_name if order.item else "N/A",
@@ -150,14 +155,17 @@ class PublicTicketTrackerView(APIView):
         }
         return Response(data, status=status.HTTP_200_OK)
 
+
 class PartUsageViewSet(viewsets.ModelViewSet):
     serializer_class = PartUsageSerializer
     permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
         user_profile = getattr(self.request.user, "profile", None)
         if not user_profile:
             return PartUsage.objects.none()
         return PartUsage.objects.filter(tenant=user_profile.tenant)
+
     def perform_create(self, serializer):
         inventory_id = self.request.data.get("inventory_item")
         inventory_item = get_object_or_404(Inventory, id=inventory_id)
@@ -166,8 +174,10 @@ class PartUsageViewSet(viewsets.ModelViewSet):
             price_at_use=inventory_item.retail_price,
         )
 
+
 class InventoryViewSet(viewsets.ModelViewSet):
     serializer_class = InventorySerializer
+
     def get_queryset(self):
         profile = getattr(self.request.user, "profile", None)
         return (
@@ -176,10 +186,12 @@ class InventoryViewSet(viewsets.ModelViewSet):
             else Inventory.objects.none()
         )
 
+
 class WorkSessionViewSet(viewsets.ModelViewSet):
     queryset = WorkSession.objects.all()
     serializer_class = WorkSessionSerializer
     permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
         profile = getattr(self.request.user, "profile", None)
         return (
@@ -187,6 +199,7 @@ class WorkSessionViewSet(viewsets.ModelViewSet):
             if profile
             else WorkSession.objects.none()
         )
+
     @action(detail=True, methods=["post"])
     def start_order(self, request, pk=None):
         order = get_object_or_404(WorkOrder, id=pk)
@@ -200,6 +213,7 @@ class WorkSessionViewSet(viewsets.ModelViewSet):
             tenant=request.user.profile.tenant,
         )
         return Response(self.get_serializer(session).data, status=201)
+
     @action(detail=False, methods=["post"])
     def stop_session(self, request):
         WorkSession.objects.filter(technician=request.user, is_active=True).update(
@@ -207,8 +221,10 @@ class WorkSessionViewSet(viewsets.ModelViewSet):
         )
         return Response({"status": "stopped"})
 
+
 class ServiceViewSet(viewsets.ModelViewSet):
     serializer_class = ServiceSerializer
+
     def get_queryset(self):
         profile = getattr(self.request.user, "profile", None)
         return (

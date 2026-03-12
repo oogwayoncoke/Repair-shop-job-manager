@@ -576,36 +576,37 @@ const WorkOrderAssignment = () => {
             </div>
 
             <div className="p-8 space-y-10 overflow-y-auto custom-scrollbar">
-              <section className="bg-[#0f1115] p-6 rounded-3xl border border-[#2d3139] flex items-center justify-between shadow-inner">
-                <div>
-                  <h4 className="text-[10px] uppercase text-[#c5a059] font-black mb-1 tracking-widest">
-                    Diagnostic Chrono
-                  </h4>
-                  <p className="text-3xl font-mono text-white font-black flex items-center gap-3">
-                    <Clock
-                      size={24}
-                      className={
-                        isThisOrderActive
-                          ? "text-emerald-500 animate-spin"
-                          : "text-slate-600"
-                      }
-                    />
-                    {totalTimeLogged}
-                  </p>
-                </div>
-                {(isOwner ||
-                  String(selectedOrder.assigned_osta_tech) ===
+              {!isOwner && (
+                <section className="bg-[#0f1115] p-6 rounded-3xl border border-[#2d3139] flex items-center justify-between shadow-inner">
+                  <div>
+                    <h4 className="text-[10px] uppercase text-[#c5a059] font-black mb-1 tracking-widest">
+                      Diagnostic Chrono
+                    </h4>
+                    <p className="text-3xl font-mono text-white font-black flex items-center gap-3">
+                      <Clock
+                        size={24}
+                        className={
+                          isThisOrderActive
+                            ? "text-emerald-500 animate-spin"
+                            : "text-slate-600"
+                        }
+                      />
+                      {totalTimeLogged}
+                    </p>
+                  </div>
+                  {(String(selectedOrder.assigned_osta_tech) ===
                     String(myTechId) ||
-                  String(selectedOrder.assigned_sabi_tech) ===
-                    String(myTechId)) && (
-                  <button
-                    onClick={handleToggleDiagnosis}
-                    className={`px-12 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${isThisOrderActive ? "bg-red-500 text-white shadow-[0_0_30px_rgba(239,68,68,0.3)]" : "bg-[#c5a059] text-[#0f1115] hover:bg-white"}`}
-                  >
-                    {isThisOrderActive ? "Punch Out" : "Punch In"}
-                  </button>
-                )}
-              </section>
+                    String(selectedOrder.assigned_sabi_tech) ===
+                      String(myTechId)) && (
+                    <button
+                      onClick={handleToggleDiagnosis}
+                      className={`px-12 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${isThisOrderActive ? "bg-red-500 text-white shadow-[0_0_30px_rgba(239,68,68,0.3)]" : "bg-[#c5a059] text-[#0f1115] hover:bg-white"}`}
+                    >
+                      {isThisOrderActive ? "Punch Out" : "Punch In"}
+                    </button>
+                  )}
+                </section>
+              )}
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="space-y-10">
@@ -624,10 +625,7 @@ const WorkOrderAssignment = () => {
                             selectedOrder.status === "parts" ||
                             selectedOrder.status === "pending") && (
                             <button
-                              onClick={() => {
-                                fetchInventory();
-                                setIsPartModalOpen(true);
-                              }}
+                              onClick={() => setIsPartModalOpen(true)}
                               className="px-6 py-3 rounded-xl text-[10px] uppercase font-black border border-[#c5a059] text-[#c5a059] hover:bg-[#c5a059] hover:text-[#0f1115] transition-all"
                             >
                               Deploy Parts
@@ -752,10 +750,7 @@ const WorkOrderAssignment = () => {
                           String(selectedOrder.assigned_sabi_tech) ===
                             String(myTechId)) && (
                           <button
-                            onClick={() => {
-                              fetchInventory();
-                              setIsPartModalOpen(true);
-                            }}
+                            onClick={() => setIsPartModalOpen(true)}
                             className="bg-[#c5a059] text-[#0f1115] px-4 py-2 rounded-xl text-[10px] uppercase font-black hover:bg-white transition-all"
                           >
                             Add Part

@@ -122,6 +122,9 @@ class InvoiceSerializer(serializers.ModelSerializer):
     )
     labor_cost = serializers.SerializerMethodField()
     parts_breakdown = serializers.SerializerMethodField()
+    services_breakdown = serializers.SerializerMethodField()
+    # Adding tax and total breakdown
+    tax_amount = serializers.SerializerMethodField()
     total_amount = serializers.SerializerMethodField()
 
     class Meta:
@@ -132,12 +135,15 @@ class InvoiceSerializer(serializers.ModelSerializer):
             "work_order_ticket_id",
             "item_name",
             "total_amount",
+            "tax_amount",
             "labor_cost",
             "parts_breakdown",
+            "services_breakdown",
             "is_paid",
         ]
 
-    def _calculate_labor(self, obj):
+    def _calculate_subtotal(self, obj):
+        # 1. Calculate Labor
         order = obj.work_order
         base = float(order.estimate_price or 0.0)
         sessions = order.sessions.filter(end_time__isnull=False)
@@ -145,13 +151,42 @@ class InvoiceSerializer(serializers.ModelSerializer):
             (s.end_time - s.start_time).total_seconds() for s in sessions
         )
         tech = order.assigned_osta_tech or order.assigned_sabi_tech
-        db_rate = float(getattr(tech, "hourly_rate", 0.0)) if tech else 0.0
-        rate = db_rate if db_rate > 0 else 100.0
-        time_labor = (total_seconds / 3600) * rate
-        return round(base + time_labor, 2)
+        rate = float(getattr(tech, "hourly_rate", 100.0)) if tech else 100.0
+        labor = base + ((total_seconds / 3600) * rate)
+
+        # 2. Calculate Parts
+        parts = sum(
+            float(p.price_at_use or 0.0) * p.quantity_used
+            for p in order.requisitions.all()
+        )
+
+        # 3. Calculate Fixed Services
+        services = sum(float(s.cost) for s in order.services.all())
+
+        return labor + parts + services
 
     def get_labor_cost(self, obj):
-        return self._calculate_labor(obj)
+        # Re-using logic to return just the labor component
+        order = obj.work_order
+        base = float(order.estimate_price or 0.0)
+        sessions = order.sessions.filter(end_time__isnull=False)
+        total_seconds = sum(
+            (s.end_time - s.start_time).total_seconds() for s in sessions
+        )
+        tech = order.assigned_osta_tech or order.assigned_sabi_tech
+        rate = float(getattr(tech, "hourly_rate", 100.0)) if tech else 100.0
+        return round(base + ((total_seconds / 3600) * rate), 2)
+
+    def get_tax_amount(self, obj):
+        # Calculating 14% Tax on the subtotal
+        subtotal = self._calculate_subtotal(obj)
+        return round(subtotal * 0.14, 2)
+
+    def get_services_breakdown(self, obj):
+        return [
+            {"name": s.service_name, "cost": float(s.cost)}
+            for s in obj.work_order.services.all()
+        ]
 
     def get_parts_breakdown(self, obj):
         return [
@@ -164,9 +199,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
         ]
 
     def get_total_amount(self, obj):
-        labor = self._calculate_labor(obj)
-        parts = sum(
-            float(p.price_at_use or 0.0) * p.quantity_used
-            for p in obj.work_order.requisitions.all()
-        )
-        return round(labor + parts, 2)
+        # Subtotal + Tax = Final Total
+        subtotal = self._calculate_subtotal(obj)
+        tax = subtotal * 0.14
+        return round(subtotal + tax, 2)

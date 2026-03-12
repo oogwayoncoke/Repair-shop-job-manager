@@ -24,6 +24,10 @@ class WorkOrderAssignmentSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         request = self.context.get("request")
+
+        if not request or not hasattr(request, "user") or not request.user:
+            raise serializers.ValidationError("Authentication required.")
+
         user_profile = getattr(request.user, "profile", None)
 
         if not user_profile:
@@ -70,9 +74,7 @@ class InventorySerializer(serializers.ModelSerializer):
 class WorkSessionSerializer(serializers.ModelSerializer):
     is_active = serializers.SerializerMethodField()
     duration_seconds = serializers.SerializerMethodField()
-    service_name = (
-        serializers.SerializerMethodField()
-    )  # Changed to MethodField for safety
+    service_name = serializers.SerializerMethodField()
     variance_percentage = serializers.SerializerMethodField()
 
     class Meta:
@@ -144,7 +146,7 @@ class PartUsageSerializer(serializers.ModelSerializer):
 
 
 class WorkOrderSerializer(serializers.ModelSerializer):
-    item_name = serializers.CharField(source="item.name", read_only=True)
+    item_name = serializers.CharField(source="item.model_name", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     parts_used = PartUsageSerializer(source="requisitions", many=True, read_only=True)
     sessions = WorkSessionSerializer(many=True, read_only=True)
