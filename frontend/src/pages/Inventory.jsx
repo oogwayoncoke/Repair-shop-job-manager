@@ -163,11 +163,6 @@ const InventoryTerminal = () => {
               className={`bg-[#1a1d23] border rounded-2xl p-6 transition-all group relative overflow-hidden ${isLowStock ? "border-red-500/40 shadow-[0_0_15px_rgba(239,68,68,0.1)]" : "border-[#2d3139] hover:border-[#c5a059]/40"}`}
             >
               <div className="flex justify-between items-start mb-6">
-                <div
-                  className={`px-2 py-0.5 rounded text-[8px] uppercase font-bold border ${item.product_type === "PART" ? "border-[#c5a059] text-[#c5a059]" : "border-slate-500 text-slate-500"}`}
-                >
-                  {item.product_type}
-                </div>
                 {isOwner && (
                   <button
                     onClick={() =>
@@ -314,15 +309,6 @@ const InventoryTerminal = () => {
                   }
                 />
               </div>
-              <select
-                className="col-span-2 bg-[#0f1115] border border-[#2d3139] p-3 rounded-xl text-xs outline-none focus:border-[#c5a059] text-slate-400"
-                onChange={(e) =>
-                  setNewItem({ ...newItem, product_type: e.target.value })
-                }
-              >
-                <option value="PART">REPAIR PART</option>
-                <option value="RETAIL">RETAIL PRODUCT</option>
-              </select>
             </div>
             <div className="flex gap-4">
               <button

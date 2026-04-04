@@ -380,7 +380,7 @@ const WorkOrderAssignment = () => {
     <div className="min-h-screen bg-[#0f1115] p-8 font-serif text-slate-200 relative">
       {notification.text && (
         <div
-          className={`fixed top-10 right-10 flex items-center gap-3 px-6 py-4 rounded-xl border z-[110] transition-all ${notification.type === "error" ? "bg-red-500/10 border-red-500/50 text-red-500 shadow-2xl" : "bg-emerald-500/10 border-emerald-500/50 text-emerald-500 shadow-2xl"}`}
+          className={`fixed top-10 right-10 flex items-center gap-3 px-6 py-4 rounded-xl border z-110 transition-all ${notification.type === "error" ? "bg-red-500/10 border-red-500/50 text-red-500 shadow-2xl" : "bg-emerald-500/10 border-emerald-500/50 text-emerald-500 shadow-2xl"}`}
         >
           <Activity
             size={16}
@@ -533,12 +533,12 @@ const WorkOrderAssignment = () => {
             onClick={(e) => e.stopPropagation()}
           >
             {modalSync && (
-              <div className="absolute inset-0 bg-[#0f1115]/60 backdrop-blur-sm z-[60] flex items-center justify-center">
+              <div className="absolute inset-0 bg-[#0f1115]/60 backdrop-blur-sm z-60 flex items-center justify-center">
                 <Loader2 className="text-[#c5a059] animate-spin" size={32} />
               </div>
             )}
 
-            <div className="p-8 border-b border-[#2d3139] flex justify-between items-center bg-gradient-to-r from-[#c5a059]/10 to-transparent">
+            <div className="p-8 border-b border-[#2d3139] flex justify-between items-center bg-linear-to-r from-[#c5a059]/10 to-transparent">
               <div>
                 <span className="text-[10px] text-[#c5a059] tracking-[0.3em] uppercase font-black italic">
                   Technical Spec // {selectedOrder.ticket_id}
@@ -821,7 +821,7 @@ const WorkOrderAssignment = () => {
       )}
 
       {isPartModalOpen && (
-        <div className="fixed inset-0 bg-[#0f1115]/95 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#0f1115]/95 backdrop-blur-xl z-100 flex items-center justify-center p-4">
           <div className="bg-[#1a1d23] border border-[#c5a059]/30 w-full max-w-md rounded-3xl p-8 shadow-2xl">
             <div className="mb-8 flex justify-between items-start">
               <div>

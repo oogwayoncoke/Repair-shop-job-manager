@@ -86,19 +86,11 @@ class WorkOrder(TenantModel):
 
 
 class Inventory(TenantModel):
-    PRODUCT_TYPES = (
-        ('PART', 'Repair Part'),
-        ('RETAIL', 'Retail Product'),
-    )
+ 
 
     name = models.CharField(max_length=255)
     sku = models.CharField(max_length=100, blank=True, null=True)
     low_stock_threshold = models.PositiveIntegerField(default=5)
-    product_type = models.CharField(
-        max_length=10, 
-        choices=PRODUCT_TYPES, 
-        default='RETAIL'
-    )
 
     cost_price = models.DecimalField(max_digits=10, decimal_places=2)
     retail_price = models.DecimalField(max_digits=10, decimal_places=2)

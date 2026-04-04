@@ -55,7 +55,6 @@ class InventorySerializer(serializers.ModelSerializer):
             "id",
             "name",
             "sku",
-            "product_type",
             "cost_price",
             "retail_price",
             "stock_count",

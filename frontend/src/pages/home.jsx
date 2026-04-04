@@ -1,7 +1,9 @@
 import { BarChart3, Clock, Shield } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Home = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-[#0f1115] text-slate-200 font-serif">
       <nav className="flex items-center justify-between px-8 py-6 border-b border-white/5 bg-[#0f1115]/80 backdrop-blur-md sticky top-0 z-50">
@@ -42,7 +44,10 @@ const Home = () => {
           >
             Establish Your Shop
           </Link>
-          <button className="w-full sm:w-auto px-10 py-4 border border-white/10 hover:bg-white/5 text-lg font-medium transition-all  uppercase tracking-widest ">
+          <button
+            onClick={() => navigate("/demo")}
+            className="w-full sm:w-auto px-10 py-4 border border-white/10 hover:bg-white/5 text-lg font-medium transition-all uppercase tracking-widest cursor-pointer"
+          >
             Live Demo
           </button>
         </div>
@@ -82,7 +87,7 @@ const Home = () => {
               The Ledger
             </h3>
             <p className="text-slate-400 font-sans text-sm leading-relaxed opacity-70">
-              A bird’s-eye view of your shop’s health. Track technician
+              A bird's-eye view of your shop's health. Track technician
               performance and revenue in real-time.
             </p>
           </div>

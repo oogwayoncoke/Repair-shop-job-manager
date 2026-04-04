@@ -7,33 +7,73 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
+    // --- DEMO MODE INTERCEPT ---
+    if (localStorage.getItem("demo_mode") === "true" && window.__demoMockApi) {
+      // Attach a signal so the response interceptor knows this was mocked
+      config.__demo = true;
+      // Return a fake "resolved" request by throwing a special sentinel
+      // We use a cancellation token trick: abort the real request and
+      // resolve it ourselves in the response interceptor.
+      const controller = new AbortController();
+      config.signal = controller.signal;
+      controller.abort("__demo__");
+      return config;
+    }
+
     const token = localStorage.getItem(ACCESS_TOKEN);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  },
+  (error) => Promise.reject(error),
 );
 
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    // --- DEMO MODE: intercept aborted requests and return mock data ---
+    if (
+      error?.message === "__demo__" ||
+      (error?.code === "ERR_CANCELED" && error?.message === "__demo__") ||
+      (error?.name === "CanceledError" &&
+        localStorage.getItem("demo_mode") === "true")
+    ) {
+      if (window.__demoMockApi && error.config) {
+        const { method, url, data } = error.config;
+        let parsedData;
+        try {
+          parsedData = typeof data === "string" ? JSON.parse(data) : data;
+        } catch {
+          parsedData = data;
+        }
 
+        // Strip base URL to get relative path
+        const relativeUrl = url.replace(/^https?:\/\/[^/]+/, "");
+        try {
+          return await window.__demoMockApi(
+            (method || "GET").toUpperCase(),
+            relativeUrl,
+            parsedData,
+          );
+        } catch (mockError) {
+          return Promise.reject(mockError);
+        }
+      }
+    }
+
+    // --- REAL TOKEN REFRESH LOGIC ---
+    const originalRequest = error.config;
     const isAuthRequest =
-      originalRequest.url.includes("token") ||
-      originalRequest.url.includes("register");
+      originalRequest?.url?.includes("token") ||
+      originalRequest?.url?.includes("register");
 
     if (
       error.response?.status === 401 &&
-      !originalRequest._retry &&
+      !originalRequest?._retry &&
       !isAuthRequest
     ) {
       originalRequest._retry = true;
-
       try {
         const refreshToken = localStorage.getItem(REFRESH_TOKEN);
         if (!refreshToken) throw new Error("No refresh token");
@@ -51,15 +91,15 @@ api.interceptors.response.use(
         }
       } catch (refreshError) {
         localStorage.clear();
-        // Only redirect if we aren't already on the login page
         if (window.location.pathname !== "/login") {
           window.location.href = "/login";
         }
         return Promise.reject(refreshError);
       }
     }
+
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

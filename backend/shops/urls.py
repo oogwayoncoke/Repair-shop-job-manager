@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views.finance import FinanceSummaryView, InvoiceViewSet
+from .views.finance import ExpenseViewSet, FinanceSummaryView, InvoiceViewSet
 from .views.operations import (
     InventoryViewSet,
     PartUsageViewSet,
@@ -30,13 +30,13 @@ router.register(r"part-usage", PartUsageViewSet, basename="part-usage")
 router.register(r"work-sessions", WorkSessionViewSet, basename="worksession")
 router.register(r"services", ServiceViewSet, basename="service")
 router.register(r"invoices", InvoiceViewSet, basename="invoices")
+router.register(r"expenses", ExpenseViewSet, basename="expenses")
+
 urlpatterns = [
     path("invites/", CreateActionLinkView.as_view(), name="create-action-linx"),
     path("validate/<uuid:token_id>/", ValidateOneClickView.as_view(), name="validate"),
     path("work-order/create/", WorkOrderCreateView.as_view(), name="create-work-order"),
-    path(
-        "track/<str:ticket_id>/", PublicTicketTrackerView.as_view(), name="public-track"
-    ),
+    path("track/<str:ticket_id>/", PublicTicketTrackerView.as_view(), name="public-track"),
     path("staff/sabis/", SabiListView.as_view(), name="sabi-list"),
     path("staff/ostas/", OstaListView.as_view(), name="osta-list"),
     path("profiles/<int:pk>/", UserProfileDetailView.as_view(), name="profile-detail"),
