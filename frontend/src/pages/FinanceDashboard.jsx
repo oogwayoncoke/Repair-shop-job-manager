@@ -36,8 +36,12 @@ const FinanceDashboard = () => {
         api.get("/shops/finance/summary/"),
         api.get("/shops/expenses/"),
       ]);
-      setSummary(sumRes.data);
-      setExpenses(expRes.data);
+
+      setSummary(sumRes?.data || null);
+
+      // Safety Check: Guarantee `expenses` is always an array
+      const expData = expRes?.data;
+      setExpenses(Array.isArray(expData) ? expData : []);
     } catch (err) {
       console.error("Treasury Sync Failed:", err);
       setError(true);
@@ -172,12 +176,12 @@ const FinanceDashboard = () => {
           </div>
 
           <div className="flex flex-col gap-2 max-h-[420px] overflow-y-auto pr-1">
-            {expenses.length === 0 && (
+            {(expenses || []).length === 0 && (
               <p className="text-slate-600 text-xs uppercase tracking-widest italic text-center py-8">
                 No expenses recorded.
               </p>
             )}
-            {expenses.map((exp) => (
+            {(expenses || []).map((exp) => (
               <ExpenseRow
                 key={exp.id}
                 expense={exp}

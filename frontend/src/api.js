@@ -9,11 +9,7 @@ api.interceptors.request.use(
   (config) => {
     // --- DEMO MODE INTERCEPT ---
     if (localStorage.getItem("demo_mode") === "true" && window.__demoMockApi) {
-      // Attach a signal so the response interceptor knows this was mocked
       config.__demo = true;
-      // Return a fake "resolved" request by throwing a special sentinel
-      // We use a cancellation token trick: abort the real request and
-      // resolve it ourselves in the response interceptor.
       const controller = new AbortController();
       config.signal = controller.signal;
       controller.abort("__demo__");
@@ -48,14 +44,29 @@ api.interceptors.response.use(
           parsedData = data;
         }
 
-        // Strip base URL to get relative path
         const relativeUrl = url.replace(/^https?:\/\/[^/]+/, "");
+
         try {
-          return await window.__demoMockApi(
+          const mockData = await window.__demoMockApi(
             (method || "GET").toUpperCase(),
             relativeUrl,
             parsedData,
           );
+
+          // FIX: If the mock API already provides an object with a 'data' property,
+          // assume it's correctly shaped and return it directly without double-wrapping.
+          if (mockData && typeof mockData === "object" && "data" in mockData) {
+            return mockData;
+          }
+
+          // Otherwise, wrap raw JSON payloads in an Axios response shell
+          return {
+            data: mockData,
+            status: 200,
+            statusText: "OK",
+            headers: {},
+            config: error.config,
+          };
         } catch (mockError) {
           return Promise.reject(mockError);
         }

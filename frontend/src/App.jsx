@@ -27,12 +27,17 @@ import WorkOrderForm from "./pages/WorkOrderForm";
 // Registers the mock API on window so demoApi.js can access it outside React
 function DemoApiRegistrar() {
   const { mockApi } = useDemo();
+
+  // 1. Assign synchronously during render so it's available before children mount
+  window.__demoMockApi = mockApi;
+
+  // 2. Clean up on unmount
   useEffect(() => {
-    window.__demoMockApi = mockApi;
     return () => {
       window.__demoMockApi = null;
     };
-  }, [mockApi]);
+  }, []);
+
   return null;
 }
 
